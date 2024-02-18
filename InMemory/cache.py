@@ -18,20 +18,18 @@ class DistributedCache:
   async def put(self, key, value, ttl = 20):
     node = self.get_node_key(key)
     await node.put(key, value, ttl)
-  
-  async def cleanup(self):
-    i=0
-    while i < len(self.nodes):
-      await self.nodes[i].getAll()
-      await self.nodes[i].cleanup()
-      i += 1
-  
+    
   async def getAll(self):
     for node in self.nodes:
       await node.getAll()
-    
-
+  
+  async def cleanup(self):
+    for node in self.nodes:
+      await node.getAll()
+      await node.cleanup()
+  
 class LRUCache:
+  
   def __init__(self):
     self.csize = 2
     self.dq = []
@@ -52,7 +50,7 @@ class Cache:
   def __init__(self):
     self.cache = {}
     self.lru_cache = []
-    self.maxSize = 2
+    self.maxSize = 5
   
   async def getAll(self):
     print(self.cache.keys())
@@ -77,8 +75,9 @@ class Cache:
       self.cache[key] = { "value": value, "expiry": expiration_time }
       print("Inserted the key", key)
   
-  def delete(self,key):
+  async def delete(self,key):
     if key in self.cache:
+      time.sleep(1)
       print("Deleted the key", key)
       del self.cache[key]
   
@@ -95,7 +94,7 @@ async def simulate_concurrent_requests(cache, num_requests):
   for i in range(num_requests):
     key = f"key{i}"
     value = file
-    tasks.append(cache.put(key, value, 10))
+    tasks.append(cache.put(key, value, 30))
     if i % 5 == 0:
       tasks.append(cache.get(key))
     if i % 4 == 0:
@@ -109,7 +108,7 @@ async def simulate_concurrent_requests(cache, num_requests):
 
 async def main():
   cache = DistributedCache(5)
-  return await simulate_concurrent_requests(cache,200)
+  return await simulate_concurrent_requests(cache,2000)
 
 def runAsync(): 
   return(asyncio.run(main()))
