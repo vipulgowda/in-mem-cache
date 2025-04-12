@@ -21,6 +21,7 @@ class DistributedCache:
 
     async def put(self, key, value, ttl=20):
         node = self.get_node_key(key)
+        print("New print")
         await node.put(key, value, ttl)
 
     async def getAll(self):
